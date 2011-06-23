@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='nous.migration',
-    version='0.1',
+    version='0.2',
     description='Utilities to collect interesting stats about your code.',
     author='Ignas Mikalajunas',
     author_email='ignas@nous.lt',
