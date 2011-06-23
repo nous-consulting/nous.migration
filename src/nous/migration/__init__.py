@@ -17,11 +17,17 @@ class PythonMigrationScript(object):
         self.title = title
         self.file_name = file_name
 
-    def upgrade(self, engine):
-        pass
+        script_module = "%s.%s_%s" % (package, self.version, self.title)
+        module = __import__(script_module,
+                            {}, {}, [''])
+        self.upgrade_py = module.upgrade
+        self.downgrade_py = getattr(module, 'downgrade', None)
 
-    def downgrade(self, engine):
-        pass
+    def upgrade(self, connection):
+        self.upgrade_py(connection)
+
+    def downgrade(self, connection):
+        self.downgrade_py(connection)
 
 
 class SQLMigrationScript(object):
@@ -32,6 +38,7 @@ class SQLMigrationScript(object):
         self.title = title
         self.file_name = file_name
         self.upgrade_file = file_name
+        self.downgrade_file = '%s_downgrade.sql' % version
 
     def upgrade(self, connection):
         statements = pkg_resources.resource_string(self.package, self.upgrade_file)
@@ -129,7 +136,7 @@ class DBMigrator(object):
             script = self.evolution_script_dict[script]
             print "Running:", script.title
             script.downgrade(self.connection)
-            print "Setting script %d as not run:", script.version
+            print "Setting script %d as not run:" % script.version
             self.connection.execute("delete from versions where version = %d" % script.version)
 
     def get_executed_scripts(self):
@@ -145,7 +152,7 @@ class DBMigrator(object):
         if version is None:
             scripts = self.get_not_executed_scripts()
         else:
-            scripts = [version]
+            scripts = [long(version)]
         self.run_scripts(scripts)
         tx.commit()
 
@@ -153,6 +160,8 @@ class DBMigrator(object):
         tx = self.connection.begin()
         if version is None:
             version = self.get_executed_scripts()[-1]
+        else:
+            version = long(version)
         self.run_downgrade_scripts([version])
         tx.commit()
 
