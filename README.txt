@@ -41,10 +41,21 @@ sqlalchemy.url = postgresql:///development
 I might add sqlalchemy configuration to the migration section too if
 someone will ask.
 
+You can also add:
+
+vcs = git
+schema_diff_cmd = git diff src/busy/models/schema.sql
+
+so that add_script command would add the files to the version control
+system, and populate them with the delta of your schema automatically.
+
+These two settings might go the setup.cfg as they are not really
+deployment related and are never required to run your application.
+
 Usage
 -----
 
-bin/migrate development.ini [upgrade|downgrade|setup] [version]
+bin/migrate development.ini [upgrade|downgrade|setup|add_script] [version]
 
 
 Integrating with your application
@@ -100,6 +111,4 @@ Sql files are just that, sql files that will be executed. Python files
 should contain callables: upgrade and downgrade, downgrade can be
 missing if script is not intended to be reversable.
 
-TODO: implement add_script action that would create the scripts
-automatically
 TODO: add example migration scripts
