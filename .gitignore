@@ -1,0 +1,7 @@
+*.pyc
+*~
+src/nous.migration.egg-info/*
+tags
+TAGS
+ID
+dist/*
