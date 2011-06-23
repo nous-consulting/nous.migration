@@ -11,8 +11,11 @@ MIGRATION_SCRIPT_REGEX = re.compile(r'(?P<version>\d+)(_upgrade)*(_(?P<name>.*))
 
 class PythonMigrationScript(object):
 
-    def __init__(self, version, file_names, package):
-        pass
+    def __init__(self, version, title, file_name, package):
+        self.package = package
+        self.version = long(version)
+        self.title = title
+        self.file_name = file_name
 
     def upgrade(self, engine):
         pass
@@ -23,28 +26,29 @@ class PythonMigrationScript(object):
 
 class SQLMigrationScript(object):
 
-    def __init__(self, version, files_names, package):
+    def __init__(self, version, title, file_name, package):
         self.package = package
-        self.version = version
+        self.version = long(version)
+        self.title = title
+        self.file_name = file_name
+        self.upgrade_file = file_name
 
-    def upgrade(self, engine):
-        connection = engine.connect()
+    def upgrade(self, connection):
         statements = pkg_resources.resource_string(self.package, self.upgrade_file)
         connection.execute(statements)
 
-    def downgrade(self, engine):
-        connection = engine.connect()
+    def downgrade(self, connection):
         statements = pkg_resources.resource_string(self.package, self.downgrade_file)
         connection.execute(statements)
 
 
 def make_migration_script(version, file_names, package):
     for file_name in file_names:
-        groups = MIGRATION_SCRIPT_REGEX.match(file_name).group_dict()
+        groups = MIGRATION_SCRIPT_REGEX.match(file_name).groupdict()
         if groups['class'] == 'py':
-            return PythonMigrationScript(version, file_name, package)
+            return PythonMigrationScript(version, groups['name'], file_name, package)
         elif groups['class'] == 'sql':
-            return SQLMigrationScript(version, file_name, package)
+            return SQLMigrationScript(version, groups['name'], file_name, package)
 
 
 class DBMigrator(object):
@@ -110,17 +114,19 @@ class DBMigrator(object):
         connection.close()
 
     def mark_script_as_executed(self, version):
-        self.connection.execute("insert into versions %d" % version)
+        self.connection.execute("insert into versions values (%d)" % version)
 
     def run_scripts(self, scripts):
         for script in scripts:
+            script = self.evolution_script_dict[script]
             print "Running:", script.title
             script.upgrade(self.connection)
-            print "Setting database version to:", script.versions
+            print "Setting database version to:", script.version
             self.mark_script_as_executed(script.version)
 
     def run_downgrade_scripts(self, scripts):
         for script in scripts:
+            script = self.evolution_script_dict[script]
             print "Running:", script.title
             script.downgrade(self.connection)
             print "Setting script %d as not run:", script.version
