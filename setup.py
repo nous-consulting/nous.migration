@@ -12,7 +12,7 @@ def get_long_description():
 
 setup(
     name='nous.migration',
-    version='0.4',
+    version='0.5',
     description='Yet another sqlalchemy based database schema migration tool',
     long_description=get_long_description(),
     author='Ignas Mikalajunas',
