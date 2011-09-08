@@ -8,7 +8,9 @@ from paste.deploy.loadwsgi import ConfigLoader
 
 from nous.migration.add_script import new_version
 
-MIGRATION_SCRIPT_REGEX = re.compile(r'(?P<version>\d+)(_upgrade)*(_(?P<name>.*))*(.(?P<class>py|sql))$')
+MIGRATION_SCRIPT_REGEX = \
+    re.compile(r'(?P<version>\d+)(?!_upgrade\.sql)(?!_downgrade.sql)'
+               r'(_(?P<name>.*))*(\.(?P<class>py|sql))$')
 
 
 class PythonMigrationScript(object):

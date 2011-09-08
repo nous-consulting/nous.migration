@@ -34,7 +34,7 @@ def new_version(package, name, script_type='sql', vcs='git', schema_diff=None, e
     downgrade_fn = None
 
     if script_type == 'sql':
-        upgrade_fn = '%s_%s_upgrade.sql' % (version, name)
+        upgrade_fn = '%s_%s.sql' % (version, name)
         downgrade_fn = '%s_downgrade.sql' % (version)
     elif script_type == 'mixed':
         migration_fn = '%s_%s.py' % (version, name)
