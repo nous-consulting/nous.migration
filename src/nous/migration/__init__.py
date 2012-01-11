@@ -180,17 +180,6 @@ def main():
     migrator_config = dict(clo.parser.items('nous.migration'))
     section = migrator_config['app']
     package = migrator_config['package']
-    schema_diff = migrator_config.get('schema_diff_cmd')
-    vcs = migrator_config.get('vcs', 'git')
-
-    if action == 'add_script':
-        try:
-            name = sys.argv[3]
-            editor = 'vim'
-        except IndexError:
-            print 'Usage: migrate development_ini add_script version_name'
-        new_version(package, name, script_type='sql', vcs=vcs, schema_diff=schema_diff, editor=editor)
-        return
 
     engine = engine_from_config(dict(clo.parser.items(section)))
     migrator = DBMigrator(engine, package)
@@ -200,3 +189,20 @@ def main():
         migrator.set_up_migration(run_scripts=True)
     if action == 'downgrade':
         migrator.downgrade(version)
+
+
+def add_migration_script():
+    name = sys.argv[1] if len(sys.argv) > 1 else None
+    config_file = sys.argv[2] if len(sys.argv) > 2 else 'development.ini'
+
+    clo = ConfigLoader(config_file)
+    migrator_config = dict(clo.parser.items('nous.migration'))
+    package = migrator_config['package']
+    schema_diff = migrator_config.get('schema_diff_cmd')
+    vcs = migrator_config.get('vcs', 'git')
+
+    editor = 'vim'
+    if name is None:
+        print 'Usage: add_migration_script version_name development.ini'
+        exit(1)
+    new_version(package, name, script_type='sql', vcs=vcs, schema_diff=schema_diff, editor=editor)
