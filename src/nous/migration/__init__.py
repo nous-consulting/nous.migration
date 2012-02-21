@@ -151,6 +151,12 @@ class DBMigrator(object):
     def get_not_executed_scripts(self):
         return sorted(set(self.evolution_script_dict.keys()) - set(self.get_executed_scripts()))
 
+    def next_version(self):
+        scripts = self.get_not_executed_scripts()
+        if scripts:
+            return scripts[0]
+        return ''
+
     def upgrade(self, version=None):
         tx = self.connection.begin()
         if version is None:
@@ -183,6 +189,8 @@ def main():
 
     engine = engine_from_config(dict(clo.parser.items(section)))
     migrator = DBMigrator(engine, package)
+    if action == 'next_version':
+        print migrator.next_version()
     if action == 'upgrade':
         migrator.upgrade(version)
     if action == 'setup':
